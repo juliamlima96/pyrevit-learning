@@ -1,37 +1,12 @@
 # -*- coding: utf-8 -*-
-__title__   = "Button 3"
-__doc__     = """Version = 1.0
-Date    = 15.06.2024
-________________________________________________________________
-Description:
-
-This is the placeholder for a .pushbutton
-You can use it to start your pyRevit Add-In
-
-________________________________________________________________
-How-To:
-
-1. [Hold ALT + CLICK] on the button to open its source folder.
-You will be able to override this placeholder.
-
-2. Automate Your Boring Work ;)
-
-________________________________________________________________
-TODO:
-[FEATURE] - Describe Your ToDo Tasks Here
-________________________________________________________________
-Last Updates:
-- [15.06.2024] v1.0 Change Description
-- [10.06.2024] v0.5 Change Description
-- [05.06.2024] v0.1 Change Description 
-________________________________________________________________
-Author: Erik Frits"""
 
 # ╦╔╦╗╔═╗╔═╗╦═╗╔╦╗╔═╗
 # ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
 # ╩╩ ╩╩  ╚═╝╩╚═ ╩ ╚═╝
 #==================================================
 from Autodesk.Revit.DB import *
+from pyrevit import forms, script
+from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, Button, CheckBox, Separator
 
 #.NET Imports
 import clr
@@ -53,16 +28,55 @@ doc    = __revit__.ActiveUIDocument.Document #type:Document
 # ╩ ╩╩ ╩╩╝╚╝
 #==================================================
 
+#collector to get all views in the project and their names
+all_views = FilteredElementCollector(doc).OfClass(View).ToElements()
+existing_names = set([v.Name for v in all_views])
 
+#forms to select views to be renamed
+selected_views = forms.select_views(
+    title="Select Views to Rename",
+    button_name="Select"
+)
+if not selected_views:
+    forms.alert("No views selected.")
+    script.exit()
 
+#define UI-forms form renaming components
+components = [Label('Prefix'), TextBox('prefix'), 
+              Label('Find'), TextBox('find'), 
+              Label('Replace'), TextBox('replace'),
+              Label('Suffix'), TextBox('suffix'),
+                Separator(),
+                Button ('Rename')
+              ]
 
-#🤖 Automate Your Boring Work Here
+#Display Form to users
+form = FlexForm('View Renamer', components)
+form.show()
 
+#Read user input
+values = form.values
+Prefix = values['prefix']
+Find = values['find']
+Replace = values['replace']
+Suffix = values['suffix']
 
+if not values['prefix'] and not values['find'] and not values['replace'] and not values['suffix']:
+    forms.alert("No values provided.")
+    script.exit()
 
+#change names of selected views
+for view in selected_views:
+    old_name = view.Name
+    base_name = old_name
+
+    if Find and Find in old_name:
+        base_name = old_name.replace(Find, Replace)
+    
+    new_name = Prefix + base_name + Suffix
+    print (old_name, "==>", new_name)
+
+#check for duplicate names
 
 
 #==================================================
-#🚫 DELETE BELOW
-from Snippets._customprint import kit_button_clicked    # Import Reusable Function from 'lib/Snippets/_customprint.py'
-kit_button_clicked(btn_name=__title__)                  # Display Default Print Message
