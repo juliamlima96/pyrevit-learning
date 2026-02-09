@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 
 # ╦╔╦╗╔═╗╔═╗╦═╗╔╦╗╔═╗
 # ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
@@ -56,20 +56,21 @@ form.show()
 
 #Read user input
 values = form.values
-Prefix = values['prefix']
-Find = values['find']
-Replace = values['replace']
-Suffix = values['suffix']
+Prefix = values['prefix'] or "" 
+Find = values['find'] or ""
+Replace = values['replace'] or ""
+Suffix = values['suffix'] or ""
 
 if not values['prefix'] and not values['find'] and not values['replace'] and not values['suffix']:
     forms.alert("No values provided.")
     script.exit()
 
 #change names of selected views
-renaming_views = []
 duplicated_keys = set()
-temp_keys =set((v.ViewType, v.Name) for v in selected_views)
+temp_keys =set()
+eq_name_keys = set()
 
+#check for duplicates in the general list
 for view in selected_views:
     old_name = view.Name
     base_name = old_name
@@ -81,21 +82,33 @@ for view in selected_views:
     old_key = (view.ViewType, old_name)
     new_key = (view.ViewType, new_name)
 
-    #discard temporarily
-    temp_keys.discard(old_key)
-
-    if new_key in temp_keys:
-        duplicated_keys.add(new_key)
-        temp_keys.add(old_key) #undo discard of old key
-        continue
-
-
     if (new_key in existing_keys) and (new_name != old_name):
-        duplicated_keys.add((old_key))
-        temp_keys.add(old_key) #undo discard of old key
+        duplicated_keys.add((view.ViewType, old_name, new_name))
+        continue
+    if (new_name == old_name):
+        eq_name_keys.add(old_key)
+        continue
+    
+    #check for duplicates in the temporary list
+    if new_key in temp_keys:
+        duplicated_keys.add((view.ViewType, old_name, new_name))
+        temp_keys.discard(new_key) #remove from temp keys to avoid multiple duplicates
         continue
 
-    temp_keys.add(new_key)
+    temp_keys.add((new_key))
+
+
+print ("names changed:")
+for nvt, nn in sorted(list(temp_keys), key=lambda x: (str(x[0]), x[1])):
+    print(" - {} ({})".format(nvt,nn))
+
+print("Conflicts:")
+for vt, on, nn in sorted(list(duplicated_keys), key=lambda x: (str(x[0]), x[1])):
+    print(" - {} ({}) -> ({})".format(vt, on, nn))
+
+print("Unchanged:")
+for vt, on in sorted(list(eq_name_keys), key=lambda x: (str(x[0]), x[1])):
+    print(" - {} ({})".format(on, vt))
 
 #temporary list (validation)
 #================================================
@@ -108,14 +121,4 @@ for view in selected_views:
 #==================================================
 
 #Apply renaming in Revit
-if not renaming_views:
-    forms.alert("No views renamed. Please check for naming conflicts.")
-    script.exit()  
 
-failed = []
-
-t = Transaction(doc, "Rename Views")
-t.Start()
-
-print ("Renaming Views...")
-for view in selected_views
