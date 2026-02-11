@@ -38,7 +38,6 @@ selected_views = forms.select_views(
     button_name="Select"
 )
 if not selected_views:
-    forms.alert("No views selected.")
     script.exit()
 
 #define UI-forms form renaming components
@@ -54,6 +53,9 @@ components = [Label('Prefix'), TextBox('prefix'),
 form = FlexForm('View Renamer', components)
 form.show()
 
+if not form.values:
+    script.exit()
+
 #Read user input
 values = form.values
 Prefix = values['prefix'] or "" 
@@ -67,10 +69,11 @@ if not values['prefix'] and not values['find'] and not values['replace'] and not
 
 #change names of selected views
 duplicated_keys = set()
-temp_keys =set()
 eq_name_keys = set()
+temp_keys =set()
+final_keys = set()
 
-#check for duplicates in the general list
+#check for duplicates
 for view in selected_views:
     old_name = view.Name
     base_name = old_name
@@ -82,43 +85,62 @@ for view in selected_views:
     old_key = (view.ViewType, old_name)
     new_key = (view.ViewType, new_name)
 
+    #duplicates in general list of views
     if (new_key in existing_keys) and (new_name != old_name):
-        duplicated_keys.add((view.ViewType, old_name, new_name))
+        duplicated_keys.add((view, old_name, new_name))
         continue
+
+    #unchanged names
     if (new_name == old_name):
-        eq_name_keys.add(old_key)
+        eq_name_keys.add((view, old_name))
         continue
-    
-    #check for duplicates in the temporary list
+
+
+    #duplicates in the temporary list
     if new_key in temp_keys:
-        duplicated_keys.add((view.ViewType, old_name, new_name))
-        temp_keys.discard(new_key) #remove from temp keys to avoid multiple duplicates
+        duplicated_keys.add((view, old_name, new_name))
         continue
+    else:
+        temp_keys.add(new_key)
+        final_keys.add((view, old_name, new_name))
 
-    temp_keys.add((new_key))
+    if not final_keys:
+        forms.alert("No views to rename. All new names are either duplicates or unchanged.")
+        script.exit()
+
+#rename views that are not duplicates
+t = Transaction(doc, "Rename Views")
+
+try:
+    t.Start()
+
+    for view, old_name, new_name in final_keys:
+        view.Name = new_name
+
+    t.Commit()
+
+except Exception as e:
+    if t.HasStarted():
+        t.RollBack()
+    forms.alert("An error occurred: {}".format(str(e)))
+    script.exit()
 
 
-print ("names changed:")
-for nvt, nn in sorted(list(temp_keys), key=lambda x: (str(x[0]), x[1])):
-    print(" - {} ({})".format(nvt,nn))
+print ("Names changed:")
+for view, on,nn in sorted(list(final_keys), key=lambda x: (str(x[0].ViewType), x[1])):
+    print(" - {} ({}) -> {}".format(on, view.ViewType, nn))
 
 print("Conflicts:")
-for vt, on, nn in sorted(list(duplicated_keys), key=lambda x: (str(x[0]), x[1])):
-    print(" - {} ({}) -> ({})".format(vt, on, nn))
+for view, on, nn in sorted(list(duplicated_keys), key=lambda x: (str(x[0].ViewType), x[1])):
+    if not duplicated_keys:
+        continue
+    print(" - {} ({}) -> {}".format(on, view.ViewType, nn))
 
 print("Unchanged:")
-for vt, on in sorted(list(eq_name_keys), key=lambda x: (str(x[0]), x[1])):
-    print(" - {} ({})".format(on, vt))
+for view, on in sorted(list(eq_name_keys), key=lambda x: (str(x[0].ViewType), x[1])):
+    if not eq_name_keys:
+        continue
+    print(" - {} ({})".format(on, view.ViewType))
 
-#temporary list (validation)
-#================================================
-#    renaming_views.append((view, old_name, new_name))
-#    print(old_name, "==>", new_name)
-#
-#print("Conflicts:")
-#for vt, nm in sorted(list(duplicated_keys), key=lambda x: (str(x[0]), x[1])):
-#    print(" - {} ({})".format(nm, vt))
-#==================================================
 
-#Apply renaming in Revit
 
