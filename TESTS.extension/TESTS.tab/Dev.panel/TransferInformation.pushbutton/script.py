@@ -6,17 +6,15 @@ clr.AddReference("RevitServices")
 from Autodesk.Revit.DB import *  
 from pyrevit import script,forms
 
-uidoc = __revit__.ActiveUIDocument
-current_doc = uidoc.Document
-app = __revit__.Application
+app    = __revit__.Application
+uidoc  = __revit__.ActiveUIDocument
+doc    = __revit__.ActiveUIDocument.Document
 
 all_docs = [d for d in app.Documents]
 doc_options = [d for d in all_docs if not d.IsLinked]
 doc_names = sorted([d.Title for d in doc_options])
 
-
-
-#COLLECT SOURCE PROJECT
+#collect source project
 source_proj = forms.SelectFromList.show(doc_names, multiselect = False, title="Source Project")
 if not source_proj:
     forms.alert("No source project selected.")
@@ -26,103 +24,67 @@ for d in doc_options:
     if d.Title == source_proj:
         source_doc = d
 
+#collect elements
+elements_source_doc = FilteredElementCollector(source_doc).OfClass(FamilySymbol)
+elements_current_doc = FilteredElementCollector(doc).OfClass(FamilySymbol)
 
-#COLLECT TARGET PROJECTS
-target_proj = forms.SelectFromList.show(doc_names, multiselect = True, title="Target Project")
-if not target_proj:
-    forms.alert("No target project selected.")
-    script.exit()
+#categories
+categories = set()
 
-target_docs = []
-for d in doc_options:
-    if d.Title in target_proj:
-        target_docs.append(d)
+for e in elements_source_doc:
+    if e.Category:
+        categories.add(e.Category.Name)
 
-#COLLECT CATEGORIES
-CATEGORY_MAP= {
-    "Ceiling Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, CeilingType)],
-    "Dimension Styles": lambda d: list(FilteredElementCollector(d).OfClass(DimensionType).ToElements()),
-    "Filters": lambda d: list(FilteredElementCollector(d).OfClass(ParameterFilterElement).ToElements()),
-    "Fill Patterns": lambda d: list(FilteredElementCollector(d).OfClass(FillPatternElement).ToElements()),
-    "Filled Region Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, FilledRegionType)],
-    "Floor Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, FloorType)],
-    "Keynoting Settings": lambda d: list(FilteredElementCollector(d).OfClass(KeynoteTable).ToElements()),
-    "Level Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, LevelType)],
-    "Line Patterns": lambda d: list(FilteredElementCollector(d).OfClass(LinePatternElement).ToElements()),
-    "Line Styles": lambda doc: [gs for gs in FilteredElementCollector(doc).OfClass(GraphicsStyle).ToElements()
-    if gs
-    and gs.GraphicsStyleCategory
-    and gs.GraphicsStyleCategory.Parent
-    and gs.GraphicsStyleCategory.Parent.Id.IntegerValue == int(BuiltInCategory.OST_Lines)
-    and gs.GraphicsStyleType == GraphicsStyleType.Projection
-],
-    "Materials": lambda d: list(FilteredElementCollector(d).OfClass(Material).ToElements()),
-    "Phase Settings": lambda d: list(FilteredElementCollector(d).OfClass(Phase).ToElements()),
-    "Roof Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, RoofType)],
-    "Text Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, TextNoteType)],
-    "View Templates": lambda d: [v for v in FilteredElementCollector(d).OfClass(View).WhereElementIsNotElementType().ToElements() if v.IsTemplate],
-    "Viewport Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if e.Category and e.Category.Id.IntegerValue == int(BuiltInCategory.OST_Viewports)],
-    "Wall Types": lambda d: [e for e in FilteredElementCollector(d).WhereElementIsElementType().ToElements() if isinstance(e, WallType)],
-}
-category_names = sorted(CATEGORY_MAP.keys())
+categories = sorted(categories)
 
-cat_key = forms.SelectFromList.show(category_names, multiselect = False, title = "Select Category")
-if not cat_key:
-    forms.alert("No category selected.")
-    script.exit()
+#select category
+select_category = forms.SelectFromList.show(categories, title="Select Category to Transfer")
 
-#COLLECT ELEMENTS
-def get_name(el):
-    #Line Styles (GraphicStyle)
-    try:
-        if isinstance(el, GraphicsStyle) and el.GraphicsStyleCategory:
-            return el.GraphicsStyleCategory.Name
-    except:
-        pass
+#get elements of that category
+category_elem_source = [e for e in elements_source_doc if e.Category and e.Category.Name == select_category]
+category_elem_current = [e for e in elements_current_doc if e.Category and e.Category.Name == select_category]
 
-    #General Types
-    try:
-        p = el.get_Parameter(BuiltInParameter.SYMBOL_NAME_PARAM)
-        if p and p.HasValue:
-            n = p.AsString()
-            if n:
-                return n
-    except:
-        pass
+#compare between source and target docs
+final_elems = []
+for e in category_elem_source:
+    fam_name = e.Family.Name if e.Family else "<sem família>"
+    type_name = Element.Name.GetValue(e)
+    match = False
+    for c in category_elem_current:
+        fam_name_c = c.Family.Name if c.Family else "<sem família>"
+        type_name_c = Element.Name.GetValue(c)
+        if fam_name == fam_name_c and type_name == type_name_c:
+            match = True
+    if match:
+        final_elems.append(e)
 
-    #General Fallback
-    try:
-        if hasattr(el,"Name") and el.Name:
-            return el.Name
-    except:
-        pass
+#get parameters
+params = set()
+for e in final_elems:
+    picked_object_type = e.GetTypeId()
+    type_params        = picked_object_type.Parameters
+    for p in type_params:
+        if not p.IsReadOnly:
+            params.add(p.Definition.Name)
 
-    #Last Fallback
-    try:
-        return "Id {}".format(el.Id.IntegerValue)
-    except:
-        return "No name"
+#test print
+print("Categories: ")
+print(select_category)
+
+print("source Document: ")
+print(source_doc.Title)
+
+print("Elements in Category: ")
+for e in final_elems:
+    fam_name = e.Family.Name if e.Family else "<sem família>"
+    type_name = Element.Name.GetValue(e)  # mais seguro que e.Name
+    print(" - {} : {}".format(fam_name, type_name))
+
+print("Parameters: ")
+for p in params:
+    print(" - {}".format(p))
 
 
-selected_elements = []
 
-src_elements = CATEGORY_MAP [cat_key](source_doc)
-
-name_to_elements = {}
-for e in src_elements:
-    n = get_name(e)
-    if not n:
-        continue
-    name_to_elements.setdefault(n, []).append(e)
-
-    names = sorted(name_to_elements.keys())
-
-picked_names = forms.SelectFromList.show(names, multiselect=True,title="{} (Source: {})".format(cat_key,source_doc.Title))
-
-if picked_names:   
-    for n in picked_names:
-        selected_elements.extend(name_to_elements[n])
-
-forms.alert("Selecionados {} elemento(s) no total.".format(len(selected_elements)))
 
     
