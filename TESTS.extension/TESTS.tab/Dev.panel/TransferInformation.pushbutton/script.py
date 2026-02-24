@@ -61,11 +61,11 @@ for e in category_elem_source:
 #get parameters
 params = set()
 for e in final_elems:
-    picked_object_type = e.GetTypeId()
-    type_params        = picked_object_type.Parameters
-    for p in type_params:
-        if not p.IsReadOnly:
-            params.add(p.Definition.Name)
+    for p in e.Parameters:
+        if p and (not p.IsReadOnly) and (p.StorageType == StorageType.String) and (p.HasValue) and (p.TypeId != "autodesk.parameter.group:ifc-1.0.0"):
+            params.add((e.Family.Name, p.Definition.Name, p.AsString()))
+
+params = sorted(params)
 
 #test print
 print("Categories: ")
@@ -83,6 +83,7 @@ for e in final_elems:
 print("Parameters: ")
 for p in params:
     print(" - {}".format(p))
+
 
 
 
