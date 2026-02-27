@@ -28,17 +28,21 @@ doc    = __revit__.ActiveUIDocument.Document #type:Document
 # ╩ ╩╩ ╩╩╝╚╝
 #==================================================
 
-#collector to get all views in the project, and create a set of existing (ViewType, Name) combinations to check against when renaming views.
-all_views = FilteredElementCollector(doc).OfClass(View).ToElements()
-existing_keys = set([(v.ViewType, v.Name) for v in all_views])
+#collector to get all views in the project, and create a set of existing (MaterialType, Name) combinations to check against when renaming views.
+all_materials = FilteredElementCollector(doc).OfClass(Material).ToElements()
+existing_names = sorted([v.Name for v in all_materials])
+
 
 #forms to select views to be renamed
-selected_views = forms.select_views(
-    title="Select Views to Rename",
-    button_name="Select"
+selected_names = forms.SelectFromList.show(existing_names,
+    title="Select Materials to Rename",
+    button_name="Select",
+    multiselect=True
 )
-if not selected_views:
+if not selected_names:
     script.exit()
+
+selected_materials = ([(m) for m in all_materials if m.Name in selected_names])
 
 #define UI-forms form renaming components
 components = [Label('Prefix'), TextBox('prefix'), 
@@ -50,7 +54,7 @@ components = [Label('Prefix'), TextBox('prefix'),
               ]
 
 #Display Form to users
-form = FlexForm('View Renamer', components)
+form = FlexForm('Material Renamer', components)
 form.show()
 
 if not form.values:
@@ -74,48 +78,46 @@ temp_keys =set()
 final_keys = set()
 
 #check for duplicates
-for view in selected_views:
-    old_name = view.Name
+for material in selected_materials:
+    old_name = material.Name
     base_name = old_name
 
     if Find and Find in old_name:
         base_name = old_name.replace(Find, Replace)
 
     new_name = Prefix + base_name + Suffix
-    old_key = (view.ViewType, old_name)
-    new_key = (view.ViewType, new_name)
 
     #duplicates in general list of views
-    if (new_key in existing_keys) and (new_name != old_name):
-        duplicated_keys.add((view, old_name, new_name))
+    if (new_name in existing_names) and (new_name != old_name):
+        duplicated_keys.add((old_name, new_name))
         continue
 
     #unchanged names
     if (new_name == old_name):
-        eq_name_keys.add((view, old_name))
+        eq_name_keys.add((old_name))
         continue
 
 
     #duplicates in the temporary list
-    if new_key in temp_keys:
-        duplicated_keys.add((view, old_name, new_name))
+    if new_name in temp_keys:
+        duplicated_keys.add((old_name, new_name))
         continue
     else:
-        temp_keys.add(new_key)
-        final_keys.add((view, old_name, new_name))
+        temp_keys.add(new_name)
+        final_keys.add((material, old_name, new_name))
 
-    if not final_keys:
-        forms.alert("No views to rename. All new names are either duplicates or unchanged.")
-        script.exit()
+if not final_keys:
+    forms.alert("No materials to rename. All new names are either duplicates or unchanged.")
+    script.exit()
 
-#rename views that are not duplicates
-t = Transaction(doc, "Rename Views")
+#rename materials that are not duplicates
+t = Transaction(doc, "Rename Materials")
 
 try:
     t.Start()
 
-    for view, old_name, new_name in final_keys:
-        view.Name = new_name
+    for material, old_name, new_name in final_keys:
+        material.Name = new_name
 
     t.Commit()
 
@@ -127,20 +129,20 @@ except Exception as e:
 
 
 print ("Names changed:")
-for view, on,nn in sorted(list(final_keys), key=lambda x: (str(x[0].ViewType), x[1])):
-    print(" - {} ({}) -> {}".format(on, view.ViewType, nn))
+for material, old_name, new_name in sorted(list(final_keys), key=lambda x: (str(x[1]))):
+    print(" - {} -> {}".format(old_name, new_name))
 
 print("Conflicts:")
-for view, on, nn in sorted(list(duplicated_keys), key=lambda x: (str(x[0].ViewType), x[1])):
+for old_name, new_name in sorted(list(duplicated_keys), key=lambda x: (str(x[0]))):
     if not duplicated_keys:
         continue
-    print(" - {} ({}) -> {}".format(on, view.ViewType, nn))
+    print(" - {} -> {}".format(old_name, new_name))
 
 print("Unchanged:")
-for view, on in sorted(list(eq_name_keys), key=lambda x: (str(x[0].ViewType), x[1])):
+for old_name in sorted(list(eq_name_keys), key=lambda x: (str(x[0]))):
     if not eq_name_keys:
         continue
-    print(" - {} ({})".format(on, view.ViewType))
+    print(" - {}".format(old_name))
 
 
 
