@@ -1,0 +1,38 @@
+<Window 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Scope Box Transfer"
+    Width="350" Height="220"
+    WindowStartupLocation="CenterScreen"
+    ResizeMode="NoResize">
+
+    <StackPanel Margin="15">
+
+        <!-- ETAPA 1 - Modelos -->
+        <StackPanel Name="etapa1" Visibility="Visible">
+            
+            <TextBlock Text="Origem:" Margin="0,0,0,5"/>
+            <ComboBox Name="combo_origem" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Destino:" Margin="0,0,0,5"/>
+            <ComboBox Name="combo_destino" Margin="0,0,0,15"/>
+
+            <Button Name="btn_proximo" Content="Proximo" 
+                    HorizontalAlignment="Right" Width="80"/>
+
+        </StackPanel>
+
+        <!-- ETAPA 2 - Scope Box -->
+        <StackPanel Name="etapa2" Visibility="Collapsed">
+
+            <TextBlock Text="Scope Box:" Margin="0,0,0,5"/>
+            <ComboBox Name="combo_scopebox" Margin="0,0,0,15"/>
+
+            <Button Name="btn_executar" Content="Executar" 
+                    HorizontalAlignment="Right" Width="80"/>
+
+        </StackPanel>
+
+    </StackPanel>
+
+</Window>

@@ -1,0 +1,5 @@
+tooltip: This script creates individual 3D views for each selected room.
+title: 3D view by room
+author: Kyle Bruxvoort
+context:
+  - doc-project
