@@ -1,37 +1,72 @@
-# -*- coding: utf-8 -*-
+  # -*- coding: utf-8 -*-
+
+# ╦╔╦╗╔═╗╔═╗╦═╗╔╦╗╔═╗
+# ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
+# ╩╩ ╩╩  ╚═╝╩╚═ ╩ ╚═╝
+#==================================================
+from Autodesk.Revit.DB import *
+from pyrevit import forms, script
+from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, Button, CheckBox, Separator
+
+#.NET Imports
 import clr
-clr.AddReference("RevitAPI")
-clr.AddReference("RevitServices")
+clr.AddReference('System')
+from System.Collections.Generic import List
 
-from Autodesk.Revit.DB import *  
-from pyrevit import script,forms
 
+# ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
+# ╚╗╔╝╠═╣╠╦╝║╠═╣╠╩╗║  ║╣ ╚═╗
+#  ╚╝ ╩ ╩╩╚═╩╩ ╩╚═╝╩═╝╚═╝╚═╝
+#==================================================
 app    = __revit__.Application
 uidoc  = __revit__.ActiveUIDocument
-doc    = __revit__.ActiveUIDocument.Document
+doc    = __revit__.ActiveUIDocument.Document #type:Document
 
-all_docs = [d for d in app.Documents]
-doc_options = [d for d in all_docs if not d.IsLinked]
-doc_names = sorted([d.Title for d in doc_options])
+# ╔╦╗╔═╗╦╔╗╔
+# ║║║╠═╣║║║║
+# ╩ ╩╩ ╩╩╝╚╝
+#==================================================
 
-#collect source project
-source_proj = forms.SelectFromList.show(doc_names, multiselect = False, title="Source Project")
-if not source_proj:
-    forms.alert("No source project selected.")
+#select schedules
+from pyrevit import forms
+
+selected_schedule = forms.select_schedules(multiple=False)
+if not selected_schedule:
     script.exit()
 
-for d in doc_options:
-    if d.Title == source_proj:
-        source_doc = d
+if not selected_schedule.IsKeySchedule:
+    forms.alert("Schedule not Key Schedule")
+    script.exit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #collect elements
-elements_source_doc = FilteredElementCollector(source_doc).OfClass(FamilySymbol).ToElements()
-elements_current_doc = FilteredElementCollector(doc).OfClass(FamilySymbol).ToElements()
+#elements_source_doc = FilteredElementCollector(source_doc).OfClass(FamilySymbol).ToElements()
+#elements_current_doc = FilteredElementCollector(doc).OfClass(FamilySymbol).ToElements()
 
 #categories
-categories = set()
+#categories = set()
 
-for e in elements_source_doc:
+#for e in elements_source_doc:
     if e.Category:
         categories.add(e.Category.Name)
 
