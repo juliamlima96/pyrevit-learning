@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+# ╦╔╦╗╔═╗╔═╗╦═╗╔╦╗╔═╗
+# ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
+# ╩╩ ╩╩  ╚═╝╩╚═ ╩ ╚═╝
+# ==================================================
+
 import clr
 clr.AddReference("RevitAPI")
 clr.AddReference("RevitServices")
@@ -6,13 +12,30 @@ clr.AddReference("RevitServices")
 from Autodesk.Revit.DB import *  
 from pyrevit import script,forms
 
+# ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
+# ╚╗╔╝╠═╣╠╦╝║╠═╣╠╩╗║  ║╣ ╚═╗
+#  ╚╝ ╩ ╩╩╚═╩╩ ╩╚═╝╩═╝╚═╝╚═╝ 
+# ==================================================
 app    = __revit__.Application
 uidoc  = __revit__.ActiveUIDocument
 doc    = __revit__.ActiveUIDocument.Document
 
-all_docs = [d for d in app.Documents]
-doc_options = [d for d in all_docs if not d.IsLinked]
-doc_names = sorted([d.Title for d in doc_options])
+
+# ╔═╗╦ ╦╔╗╔╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
+# ╠╣ ║ ║║║║║   ║ ║║ ║║║║╚═╗
+# ╚  ╚═╝╝╚╝╚═╝ ╩ ╩╚═╝╝╚╝╚═╝
+#==================================================
+
+#collect schedule
+selected_schedule = forms.select_schedules(multiple=False)
+if not selected_schedule:
+    script.exit()
+if not selected_schedule.Definition.IsKeySchedule:
+    forms.alert("Selected schedule is not a Key Schedule.")
+    script.exit()
+
+
+
 
 #collect source project
 source_proj = forms.SelectFromList.show(doc_names, multiselect = False, title="Source Project")
@@ -74,6 +97,10 @@ select_params = forms.SelectFromList.show(unique_params, title="Select Parameter
 if not select_params:
     script.exit()
 
+# ╔╦╗╔═╗╦╔╗╔
+# ║║║╠═╣║║║║
+# ╩ ╩╩ ╩╩╝╚╝
+#==================================================
 #transaction
 t = Transaction(doc, 'Transfer Parameters')
 t.Start()
