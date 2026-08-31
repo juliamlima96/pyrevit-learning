@@ -1,0 +1,4 @@
+title: Sync Excel
+tooltip: Sincroniza parametros entre colunas Excel e parametros Revit.
+  Colunas com o mesmo nome que parametros Revit sao sincronizadas automaticamente.
+author: pyRevit Script
