@@ -46,11 +46,22 @@ if not excel_file:
     script.exit()
 
 #==================================================
+#key schedule parameters extraction
+
 #key parameter
 key_parameter = selected_schedule.KeyScheduleParameterName
 
+#all parameters
+key_sch_list = []
+schedule_definition = selected_schedule.Definition
+for index in range(schedule_definition.GetFieldCount()):
+    field = schedule_definition.GetField(index)
+    revit_param = doc.GetElement(field.ParameterId)
+    if revit_param:
+        key_sch_list.append(revit_param)
+
 #==================================================
-#Worksheets
+#Excel Worksheets
 #list worksheets
 workbook = excel_app.Workbooks.Open(excel_file)
 
@@ -71,30 +82,59 @@ if not selected_worksheet_name:
 selected_worksheet = workbook.Worksheets[selected_worksheet_name]
 
 #==================================================
+#parameters in excel
 #cells with information in worksheet
 used_range = selected_worksheet.UsedRange
 
 #find key parameter in excel
+key_column = None
 for column in range(1, used_range.Columns.Count + 1):
     cell_value = selected_worksheet.Cells(1, column).Value2
 
     if cell_value == key_parameter:
         key_column = column
         break
+if key_column is None:
+    forms.alert("Key Parameter not found on Excel File")
+    script.exit()
+
+#Excel Parameters List
+excel_param_list = []
+for column in range(1, used_range.Columns.Count +1):
+    excel_param_list.append(selected_worksheet.Cells(1,column).Value2)
+
+#==================================================
+#matching parameters in Excel and Revit
+param_match_list = []
+list_unmatched =[]
+
+for e_param in excel_param_list:
+    for r_param in key_sch_list:
+        if r_param.Name.lower() == e_param.lower():
+            param_match_list.append(e_param)
+            break
     else:
-        forms.alert("Key Parameter not found on Excel File")
-        script.exit()
+        list_unmatched.append(e_param)
 
-#list with key parameter values
-for row in range (2, used_range.Rows.Count + 1):
-    key_value = selected_worksheet.Cells(row, key_column).Value2
-    print(row, key_value)
+#Add key parameter to the list
+param_match_list.append(key_parameter)
+#==================================================
+#dictionary for values
+excel_data ={}
 
-print(column, cell_value)
+for row in range(2, used_range.Rows.Count +1):
+    row_data = {}
+    for column in range(1, used_range.Columns.Count +1):
+        excel_param = selected_worksheet.Cells(1,column).Value2
+        value = selected_worksheet.Cells(row,column).Value2
 
+        if excel_param in param_match_list:
+            row_data[excel_param] = value
 
+    excel_data [selected_worksheet.Cells(row,key_column).Value2] = row_data
 
-
+print(selected_schedule.GetType())
+print(selected_schedule.Name)
 
 
 
