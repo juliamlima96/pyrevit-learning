@@ -1,0 +1,15 @@
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\bin\Debug\WpfApp1.exe.config
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\bin\Debug\WpfApp1.exe
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\bin\Debug\WpfApp1.pdb
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.csproj.AssemblyReference.cache
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\MainWindow.g.cs
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\App.g.cs
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1_MarkupCompile.cache
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1_MarkupCompile.lref
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\MainWindow.baml
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.g.resources
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.Properties.Resources.resources
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.csproj.GenerateResource.cache
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.csproj.CoreCompileInputs.cache
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.exe
+C:\Users\JuliaMoraes\OneDrive - BIM plus A\Documents\GitHub\pyrevit-learning\WPF FORMS\FORM1\WpfApp1\obj\Debug\WpfApp1.pdb
