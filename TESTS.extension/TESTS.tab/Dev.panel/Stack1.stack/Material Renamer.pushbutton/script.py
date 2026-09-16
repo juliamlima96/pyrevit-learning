@@ -6,12 +6,11 @@
 #==================================================
 from Autodesk.Revit.DB import *
 from pyrevit import forms, script
-from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, Button, CheckBox, Separator
+from rpw.ui.forms import FlexForm, Label, TextBox, Button, Separator
 
 #.NET Imports
 import clr
 clr.AddReference('System')
-from System.Collections.Generic import List
 
 
 # ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
