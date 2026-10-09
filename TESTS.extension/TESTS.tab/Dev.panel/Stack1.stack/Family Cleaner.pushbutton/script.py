@@ -21,6 +21,7 @@ app    = __revit__.Application
 uidoc  = __revit__.ActiveUIDocument
 doc    = __revit__.ActiveUIDocument.Document #type:Document
 
+family_manager = doc.FamilyManager
 
 # ╔╦╗╔═╗╦╔╗╔
 # ║║║╠═╣║║║║
@@ -33,9 +34,62 @@ if not doc.IsFamilyDocument:
     script.exit() 
 
 #==================================================
+#LIST TYPES
+types = family_manager.Types
+
+print("------TYPES BEFORE------")
+for type in types:
+    print(type.Name)
+
+t = Transaction(doc, 'Clear Types')
+t.Start()
+try:
+    family_manager.NewType("Standard")
+    for type in types:
+        if type.Name != "Standard":
+            family_manager.CurrentType = type
+            family_manager.DeleteCurrentType()  
+    
+    t.Commit()
+except:
+    t.RollBack()
+
+types = family_manager.Types
+print("------FINAL TYPE------")
+for type in types:
+    print(type.Name)
+
+#==================================================
+#RENAME 3D VIEW
+all_views  = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Views).WhereElementIsNotElementType().ToElements()
+
+
+print("----3D VIEWS BEFORE-----")
+for view in all_views:
+    if view.ViewType == ViewType.ThreeD:
+        print (view.Name)
+
+t = Transaction(doc, 'Rename 3D View')
+t.Start()
+try:
+    n = 1
+    for view in all_views:
+            if view.ViewType == ViewType.ThreeD and view.Name != "{3D}":
+                view.Name = "View {}".format(n)
+                n += 1    
+    t.Commit()
+except:
+    t.RollBack()
+
+
+print("-----3D VIEWS AFTER----")
+for view in all_views:
+    if view.ViewType == ViewType.ThreeD:
+        print (view.Name)
+
+#==================================================
 #LIST PARAMETERS TO BE CLEANED / DELETED
 #family parameter list
-family_manager = doc.FamilyManager
 parameters = family_manager.Parameters
 
 #array parameters
@@ -126,37 +180,16 @@ for param in parameters:
         else:
             param_tobecleared.append(param)
 
+t = Transaction(doc, 'Parameters')
+t.Start()
+try:
+    count = 0
+    for param in param_tobedeleted:
+        family_manager.RemoveParameter(param)
+        count += 1
+    t.Commit()
+except:
+    t.RollBack()
 
 
-# print
-for param in parameters:
-    data_type = param.Definition.GetDataType()
-    print(param.Definition.Name, param.IsReadOnly, data_type.TypeId)
-
-print ("----------------")
-for param in array_param:
-    data_type = param.Definition.GetDataType()
-    print(param.Definition.Name, param.IsReadOnly, data_type.TypeId)
-
-print ("----------------")
-print ("PARAMETERS TO BE CLEARED")
-for param in param_tobecleared:
-    data_type = param.Definition.GetDataType()
-    if filter_notdimensions(param):
-        print(param.Definition.Name, param.IsReadOnly, data_type.TypeId)
-
-print ("----------------")
-print ("PARAMETERS TO BE DELETED")
-for param in param_tobedeleted:
-    data_type = param.Definition.GetDataType()
-    if filter_notdimensions(param):
-        print(param.Definition.Name, param.IsReadOnly, data_type.TypeId)
-
-#==================================================
-#CREATE NEW TYPE "STANDARD" AND DELETE ALL OTHERS
-types = family_manager.Types
-
-print ("----------------")
-print ("TYPES")
-for type in types:
-    print(type.Name)
+print("{} parameters to be deleted".format(count))
