@@ -1,0 +1,53 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Julia\\Documents\\GitHub\\pyrevit-learning\\WPF Forms\\PyRevitForm1\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{962B3775-60A4-4B29-9719-C68C45FE1DFD}|PyRevitForm1\\PyRevitForm1.csproj|c:\\users\\julia\\documents\\github\\pyrevit-learning\\wpf forms\\pyrevitform1\\pyrevitform1\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{962B3775-60A4-4B29-9719-C68C45FE1DFD}|PyRevitForm1\\PyRevitForm1.csproj|solutionrelative:pyrevitform1\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{962B3775-60A4-4B29-9719-C68C45FE1DFD}|PyRevitForm1\\PyRevitForm1.csproj|c:\\users\\julia\\documents\\github\\pyrevit-learning\\wpf forms\\pyrevitform1\\pyrevitform1\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{962B3775-60A4-4B29-9719-C68C45FE1DFD}|PyRevitForm1\\PyRevitForm1.csproj|solutionrelative:pyrevitform1\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\Julia\\Documents\\GitHub\\pyrevit-learning\\WPF Forms\\PyRevitForm1\\PyRevitForm1\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "PyRevitForm1\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\Julia\\Documents\\GitHub\\pyrevit-learning\\WPF Forms\\PyRevitForm1\\PyRevitForm1\\MainWindow.xaml",
+              "RelativeToolTip": "PyRevitForm1\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-05T13:13:50.393Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Julia\\Documents\\GitHub\\pyrevit-learning\\WPF Forms\\PyRevitForm1\\PyRevitForm1\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "PyRevitForm1\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Julia\\Documents\\GitHub\\pyrevit-learning\\WPF Forms\\PyRevitForm1\\PyRevitForm1\\MainWindow.xaml.cs",
+              "RelativeToolTip": "PyRevitForm1\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-05T13:13:48.772Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

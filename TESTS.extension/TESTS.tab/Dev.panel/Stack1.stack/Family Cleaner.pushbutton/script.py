@@ -4,14 +4,14 @@
 # ║║║║╠═╝║ ║╠╦╝ ║ ╚═╗
 # ╩╩ ╩╩  ╚═╝╩╚═ ╩ ╚═╝
 #==================================================
-from Autodesk.Revit.DB import *
-from pyrevit import forms, script
-from rpw.ui.forms import FlexForm, Label, TextBox, Button, Separator
-
 #.NET Imports
 import clr
 clr.AddReference('System')
+clr.AddReference("System.Core")
 
+from Autodesk.Revit.DB import *
+from System.Collections.Generic import HashSet
+from pyrevit import forms, script
 
 # ╦  ╦╔═╗╦═╗╦╔═╗╔╗ ╦  ╔═╗╔═╗
 # ╚╗╔╝╠═╣╠╦╝║╠═╣╠╩╗║  ║╣ ╚═╗
@@ -35,6 +35,7 @@ if not doc.IsFamilyDocument:
 
 #==================================================
 #LIST TYPES
+#==================================================
 types = family_manager.Types
 
 print("------TYPES BEFORE------")
@@ -61,34 +62,44 @@ for type in types:
 
 #==================================================
 #RENAME 3D VIEW
+#==================================================
 all_views  = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Views).WhereElementIsNotElementType().ToElements()
 
-
 print("----3D VIEWS BEFORE-----")
-for view in all_views:
-    if view.ViewType == ViewType.ThreeD:
-        print (view.Name)
+views_3d = [
+    view for view in all_views
+    if view.ViewType == ViewType.ThreeD
+    and not view.IsTemplate
+    and view.Name != "{3D}"
+]
+
+for view in views_3d:
+    print(view.Name)
 
 t = Transaction(doc, 'Rename 3D View')
 t.Start()
 try:
     n = 1
-    for view in all_views:
-            if view.ViewType == ViewType.ThreeD and view.Name != "{3D}":
-                view.Name = "View {}".format(n)
-                n += 1    
+    for view in views_3d:
+        view.Name = "View {}".format(n)
+
+        if view.IsLocked:
+            view.Unlock()
+
+        n += 1
     t.Commit()
 except:
     t.RollBack()
 
 
 print("-----3D VIEWS AFTER----")
-for view in all_views:
-    if view.ViewType == ViewType.ThreeD:
-        print (view.Name)
+for view in views_3d:
+    print(view.Name)
+
 
 #==================================================
 #LIST PARAMETERS TO BE CLEANED / DELETED
+#==================================================
 #family parameter list
 parameters = family_manager.Parameters
 
@@ -162,6 +173,9 @@ def filter_notdimensions(param):
     if data_type == SpecTypeId.Angle:
         return False
 
+    if data_type == SpecTypeId.Boolean.YesNo:
+        return False
+
     if data_name in [p.Definition.Name for p in array_param]:
         return False
 
@@ -180,16 +194,113 @@ for param in parameters:
         else:
             param_tobecleared.append(param)
 
-t = Transaction(doc, 'Parameters')
+
+t = Transaction(doc, 'Clean Family Parameters')
 t.Start()
+
+#subtransaction to clear formulas
+st1 = SubTransaction(doc)
+st1.Start()
+try:        
+    for param in param_tobecleared:
+        if param.Formula:
+            family_manager.SetFormula(param, None)
+
+    st1.Commit()
+except:
+    st1.RollBack()
+
+#subtransaction to clear values
+st2 = SubTransaction(doc)
+st2.Start()
 try:
-    count = 0
+    count_cleared = 0
+    for param in param_tobecleared:
+        if param.StorageType == StorageType.String:
+            family_manager.Set(param, "")
+            count_cleared += 1
+        elif param.StorageType == StorageType.ElementId:
+            family_manager.Set(param, ElementId.InvalidElementId)
+            count_cleared += 1
+
+    st2.Commit()
+except:
+    st2.RollBack()
+
+#subtransaction to delete parameters
+st3 = SubTransaction(doc)
+st3.Start()
+try:
+    count_deleted = 0
     for param in param_tobedeleted:
         family_manager.RemoveParameter(param)
-        count += 1
-    t.Commit()
+        count_deleted += 1
+
+    st3.Commit()
 except:
+    st3.RollBack()  
+t.Commit()
+
+print("------PARAMETERS------")
+
+print("Parameters cleared: {}".format(count_cleared))
+print("Parameters deleted: {}".format(count_deleted))
+
+#==================================================
+#REMOVE MATERIALS
+#==================================================
+materials = FilteredElementCollector(doc)\
+    .OfClass(Material)\
+    .ToElements()
+
+appearance_assets = FilteredElementCollector(doc)\
+    .OfClass(AppearanceAssetElement)\
+    .ToElements()
+
+property_assets = FilteredElementCollector(doc)\
+    .OfClass(PropertySetElement)\
+    .ToElements()
+
+print("------MATERIALS------")
+
+t = Transaction(doc, 'Remove Materials and Assets')
+t.Start()
+
+count_removed = 0
+count_assets = 0
+
+try:
+    # STEP 1 - DELETE MATERIALS
+    for material in materials:
+        doc.Delete(material.Id)
+        count_removed += 1
+
+    # STEP 2 - DELETE APPEARANCE ASSETS
+    for asset in appearance_assets:
+        try:
+            doc.Delete(asset.Id)
+            count_assets += 1
+        except Exception as e:
+            print("Cannot delete asset {}: {}".format(
+                asset.Name, e
+            ))
+
+    # STEP 3 - DELETE PHYSICAL ASSETS
+    for asset in property_assets:
+        try:
+            doc.Delete(asset.Id)
+            count_assets += 1
+        except Exception as e:
+            print("Cannot delete asset {}: {}".format(
+                asset.Name, e
+            ))
+
+    t.Commit()
+
+except Exception as e:
     t.RollBack()
+    print("ERROR: {}".format(e))
 
-
-print("{} parameters to be deleted".format(count))
+print("------RESULTS------")
+print("{} materials removed".format(count_removed))
+print("{} assets removed".format(count_assets))
